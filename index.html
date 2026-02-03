@@ -85,33 +85,6 @@ button {
   position: relative;
   border-radius: 4px;
 }
-  <!-- 🎂 INLINE CAKE (NO IMAGE ISSUES) -->
-<svg width="220" height="160" viewBox="0 0 220 160" aria-label="Birthday Cake">
-  <!-- Plate -->
-  <ellipse cx="110" cy="145" rx="90" ry="8" fill="#f5f5f5"/>
-
-  <!-- Cake base -->
-  <rect x="40" y="70" width="140" height="60" rx="10" fill="#8b5a2b"/>
-
-  <!-- Cream layer -->
-  <rect x="40" y="55" width="140" height="20" rx="10" fill="#fff2cc"/>
-
-  <!-- Drips -->
-  <path d="M50 55 v15
-           M70 55 v10
-           M90 55 v18
-           M110 55 v12
-           M130 55 v17
-           M150 55 v10"
-        stroke="#fff2cc" stroke-width="8" stroke-linecap="round"/>
-
-  <!-- Middle chocolate layer -->
-  <rect x="40" y="95" width="140" height="10" fill="#6f3b1f"/>
-
-  <!-- Top edge -->
-  <rect x="40" y="55" width="140" height="5" fill="#f0e1b0"/>
-</svg>
-
 
 .flame {
   position: absolute;
@@ -166,7 +139,15 @@ button {
     <div class="flame" id="flame"></div>
   </div>
 
- 
+  <!-- 🎂 INLINE CAKE SVG -->
+  <svg width="220" height="160" viewBox="0 0 220 160">
+    <ellipse cx="110" cy="145" rx="90" ry="8" fill="#f5f5f5"/>
+    <rect x="40" y="70" width="140" height="60" rx="10" fill="#8b5a2b"/>
+    <rect x="40" y="55" width="140" height="20" rx="10" fill="#fff2cc"/>
+    <path d="M50 55 v15 M70 55 v10 M90 55 v18 M110 55 v12 M130 55 v17 M150 55 v10"
+          stroke="#fff2cc" stroke-width="8" stroke-linecap="round"/>
+    <rect x="40" y="95" width="140" height="10" fill="#6f3b1f"/>
+  </svg>
 
   <div class="text">
     <h1>happy birthday!</h1>
@@ -176,7 +157,7 @@ button {
   <p id="instruction">🌬 Blow the candle or wait 12 seconds</p>
 </div>
 
-<!-- 🎵 LOCAL AUDIO -->
+<!-- 🎵 MUSIC FILE -->
 <audio id="song" src="birthday.mp3"></audio>
 
 <script>
@@ -191,31 +172,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let blown = false;
 
-  // Open box
   box.onclick = () => {
     box.classList.add("hidden");
     decorateBtn.classList.remove("hidden");
   };
 
-  // Decorate & start everything
   decorateBtn.onclick = async () => {
     decorateBtn.classList.add("hidden");
     cakeArea.classList.remove("hidden");
 
-    // Play music (20s)
-    song.currentTime = 0;
     song.play();
     setTimeout(() => song.pause(), 20000);
-
-    // Auto candle off after 12s
     setTimeout(blowOut, 12000);
 
-    // Mic detection
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      await ctx.resume();
-
+      const ctx = new AudioContext();
       const mic = ctx.createMediaStreamSource(stream);
       const analyser = ctx.createAnalyser();
       mic.connect(analyser);
@@ -225,34 +197,24 @@ document.addEventListener("DOMContentLoaded", () => {
       function listen() {
         if (blown) return;
         analyser.getByteTimeDomainData(data);
-
         let sum = 0;
-        for (let i of data) {
-          let v = (i - 128) / 128;
-          sum += v * v;
-        }
-
-        if (Math.sqrt(sum / data.length) > 0.08) {
-          blowOut();
-          stream.getTracks().forEach(t => t.stop());
-        }
+        for (let i of data) sum += ((i - 128) / 128) ** 2;
+        if (Math.sqrt(sum / data.length) > 0.08) blowOut();
         requestAnimationFrame(listen);
       }
       listen();
-    } catch {
-      console.log("Mic denied – auto off will work");
-    }
+    } catch {}
   };
 
   function blowOut() {
     if (blown) return;
     blown = true;
     flame.classList.add("off");
-    instruction.innerHTML = "✨ Wish made! Happy Birthday Mahie ✨";
+    instruction.innerText = "✨ Wish made! Happy Birthday Mahie ✨";
   }
-
 });
 </script>
 
 </body>
 </html>
+
