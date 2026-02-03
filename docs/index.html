@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Happy Birthday Mahie 🎂</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+@import url('https://fonts.googleapis.com/css?family=Lato:300italic');
+
+* { box-sizing: border-box; }
+
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: #ee9ca7;
+  font-family: 'Lato', sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.hidden { display: none; }
+
+/* 🎁 BOX */
+#box {
+  cursor: pointer;
+  animation: pulse 1.5s infinite;
+}
+@keyframes pulse {
+  50% { transform: scale(1.1); }
+}
+.box-lid {
+  width: 140px;
+  height: 35px;
+  background: #ff4757;
+  border-radius: 8px;
+  margin: auto;
+}
+.box-body {
+  width: 130px;
+  height: 110px;
+  background: #ff6b81;
+  border-radius: 0 0 12px 12px;
+  margin: auto;
+}
+
+/* BUTTON */
+button {
+  padding: 14px 28px;
+  font-size: 17px;
+  border: none;
+  border-radius: 40px;
+  background: #6a2a32;
+  color: white;
+  cursor: pointer;
+  margin-top: 20px;
+}
+
+/* 🎈 BALLOONS */
+#balloons {
+  font-size: 36px;
+  margin-bottom: 10px;
+  animation: float 2s infinite alternate;
+}
+@keyframes float {
+  to { transform: translateY(-15px); }
+}
+
+/* 🎂 CAKE */
+#cake-area {
+  margin-top: 20px;
+}
+
+.candle {
+  width: 6px;
+  height: 36px;
+  background: white;
+  margin: auto;
+  position: relative;
+  border-radius: 4px;
+}
+
+.flame {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 10px;
+  height: 20px;
+  background: rgba(255,200,0,0.9);
+  border-radius: 50%;
+  animation: flicker 0.25s infinite;
+}
+.flame.off {
+  opacity: 0;
+  animation: none;
+}
+@keyframes flicker {
+  50% { transform: translateX(-50%) scale(0.75); }
+}
+
+.text {
+  color: #8b6a60;
+  font-style: italic;
+  margin-top: 15px;
+}
+
+#instruction {
+  color: #6a2a32;
+  font-weight: bold;
+  margin-top: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- 🎁 BOX -->
+<div id="box">
+  <div class="box-lid"></div>
+  <div class="box-body"></div>
+  <p>Click to open 🎁</p>
+</div>
+
+<button id="decorateBtn" class="hidden">Decorate the cake 🎨</button>
+
+<!-- 🎂 CAKE SECTION -->
+<div id="cake-area" class="hidden">
+
+  <div id="balloons">🎈 🎈 🎈 🎉 🎈 🎈</div>
+
+  <div class="candle">
+    <div class="flame" id="flame"></div>
+  </div>
+
+  <!-- 🎂 INLINE CAKE SVG -->
+  <svg width="220" height="160" viewBox="0 0 220 160">
+    <ellipse cx="110" cy="145" rx="90" ry="8" fill="#f5f5f5"/>
+    <rect x="40" y="70" width="140" height="60" rx="10" fill="#8b5a2b"/>
+    <rect x="40" y="55" width="140" height="20" rx="10" fill="#fff2cc"/>
+    <path d="M50 55 v15 M70 55 v10 M90 55 v18 M110 55 v12 M130 55 v17 M150 55 v10"
+          stroke="#fff2cc" stroke-width="8" stroke-linecap="round"/>
+    <rect x="40" y="95" width="140" height="10" fill="#6f3b1f"/>
+  </svg>
+
+  <div class="text">
+    <h1>happy birthday!</h1>
+    <p style="font-size:1.6rem;font-weight:bold;">Mahie</p>
+  </div>
+
+  <p id="instruction">🌬 Blow the candle or wait 12 seconds</p>
+</div>
+
+<!-- 🎵 MUSIC FILE -->
+<audio id="song" src="birthday.mp3"></audio>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+  const box = document.getElementById("box");
+  const decorateBtn = document.getElementById("decorateBtn");
+  const cakeArea = document.getElementById("cake-area");
+  const flame = document.getElementById("flame");
+  const song = document.getElementById("song");
+  const instruction = document.getElementById("instruction");
+
+  let blown = false;
+
+  box.onclick = () => {
+    box.classList.add("hidden");
+    decorateBtn.classList.remove("hidden");
+  };
+
+  decorateBtn.onclick = async () => {
+    decorateBtn.classList.add("hidden");
+    cakeArea.classList.remove("hidden");
+
+    song.play();
+    setTimeout(() => song.pause(), 20000);
+    setTimeout(blowOut, 12000);
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const ctx = new AudioContext();
+      const mic = ctx.createMediaStreamSource(stream);
+      const analyser = ctx.createAnalyser();
+      mic.connect(analyser);
+
+      const data = new Uint8Array(analyser.frequencyBinCount);
+
+      function listen() {
+        if (blown) return;
+        analyser.getByteTimeDomainData(data);
+        let sum = 0;
+        for (let i of data) sum += ((i - 128) / 128) ** 2;
+        if (Math.sqrt(sum / data.length) > 0.08) blowOut();
+        requestAnimationFrame(listen);
+      }
+      listen();
+    } catch {}
+  };
+
+  function blowOut() {
+    if (blown) return;
+    blown = true;
+    flame.classList.add("off");
+    instruction.innerText = "✨ Wish made! Happy Birthday Mahie ✨";
+  }
+});
+</script>
+
+</body>
+</html>
